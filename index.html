@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escalas Cirurgia Geral - ULS São João</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#6D1D14">
+  <style>
+    :root {
+      --uls-red: #6D1D14;
+      --uls-orange: #EE7F00;
+      --uls-dark: #1A1A1A;
+      --uls-gray: #585832;
+      --uls-bg: #F8F9FA;
+      --card-bg: #FFFFFF;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Calibri, 'Segoe UI', Arial, sans-serif; }
+    body { background: var(--uls-bg); color: var(--uls-dark); padding-bottom: 70px; }
+    
+    /* Header Institucional */
+    header {
+      background: var(--uls-red);
+      color: #FFF;
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    header h1 { font-size: 1.05rem; font-weight: 700; letter-spacing: 0.3px; }
+    header span { font-size: 0.8rem; opacity: 0.85; }
+
+    /* Login Overlay */
+    #login-view {
+      position: fixed; inset: 0; background: var(--uls-bg);
+      display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px;
+    }
+    .login-card {
+      background: #FFF; padding: 28px; border-radius: 8px; width: 100%; max-width: 360px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-top: 4px solid var(--uls-red);
+    }
+    .login-card h2 { color: var(--uls-red); font-size: 1.25rem; margin-bottom: 6px; }
+    .login-card p { font-size: 0.85rem; color: #666; margin-bottom: 20px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; }
+    .form-group input {
+      width: 100%; padding: 10px; border: 1px solid #CCC; border-radius: 4px; font-size: 0.95rem;
+    }
+    .btn-primary {
+      width: 100%; padding: 12px; background: var(--uls-red); color: #FFF; border: none;
+      border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 0.95rem; margin-top: 5px;
+    }
+
+    /* Conteúdos e Cartões */
+    .container { padding: 16px; max-width: 600px; margin: 0 auto; display: none; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+    .kpi-card {
+      background: var(--card-bg); padding: 12px; border-radius: 6px; text-align: center;
+      border: 1px solid #E5E5E5; border-bottom: 3px solid var(--uls-orange);
+    }
+    .kpi-num { font-size: 1.4rem; font-weight: 700; color: var(--uls-red); }
+    .kpi-title { font-size: 0.75rem; text-transform: uppercase; color: #666; margin-top: 2px; }
+
+    .item-card {
+      background: #FFF; padding: 14px; border-radius: 6px; margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-left: 4px solid var(--uls-red);
+    }
+    .item-card.bloco { border-left-color: var(--uls-orange); }
+    .item-card.ausencia { border-left-color: var(--uls-gray); }
+    .item-card h4 { font-size: 0.95rem; margin-bottom: 4px; }
+    .item-card p { font-size: 0.85rem; color: #555; }
+
+    /* Barra de Navegação Inferior */
+    nav.bottom-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; background: #FFF;
+      display: flex; border-top: 1px solid #DDD; height: 58px; z-index: 10;
+    }
+    nav button {
+      flex: 1; border: none; background: transparent; font-size: 0.78rem;
+      font-weight: 600; color: #777; cursor: pointer; display: flex;
+      flex-direction: column; align-items: center; justify-content: center;
+    }
+    nav button.active { color: var(--uls-red); }
+  </style>
+</head>
+<body>
+
+  <!-- Tela de Login -->
+  <div id="login-view">
+    <div class="login-card">
+      <h2>ULS São João</h2>
+      <p>Cirurgia Geral — Escala de Internos</p>
+      <form id="form-login">
+        <div class="form-group">
+          <label>Utilizador</label>
+          <input type="text" id="user" required placeholder="ex.: jmartins">
+        </div>
+        <div class="form-group">
+          <label>Palavra-passe</label>
+          <input type="password" id="pass" required>
+        </div>
+        <button type="submit" class="btn-primary">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Header Geral -->
+  <header>
+    <div>
+      <h1>ULS SÃO JOÃO</h1>
+      <span>Cirurgia Geral</span>
+    </div>
+    <span id="label-user"></span>
+  </header>
+
+  <!-- Separador 1: O Meu Mês -->
+  <div id="tab-meu-mes" class="container">
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-num" id="kpi-urg">0</div><div class="kpi-title">Urgências</div></div>
+      <div class="kpi-card"><div class="kpi-num" id="kpi-bloco">0</div><div class="kpi-title">Blocos</div></div>
+      <div class="kpi-card"><div class="kpi-num" id="kpi-res">0</div><div class="kpi-title">Residência</div></div>
+    </div>
+    <div id="lista-turnos-pessoais"></div>
+  </div>
+
+  <!-- Separador 2: Escala Geral -->
+  <div id="tab-escala-geral" class="container">
+    <h3 style="margin-bottom: 12px; font-size: 1rem;">Distribuição Diária Geral</h3>
+    <input type="date" id="filtro-data" style="width: 100%; padding: 8px; margin-bottom: 14px; border: 1px solid #CCC; border-radius: 4px;">
+    <div id="lista-escala-geral"></div>
+  </div>
+
+  <!-- Separador 3: Contactos & Ramais -->
+  <div id="tab-ramais" class="container">
+    <h3 style="margin-bottom: 12px; font-size: 1rem;">Contactos & Postos Hospitalares</h3>
+    <div id="lista-ramais"></div>
+  </div>
+
+  <!-- Navegação Inferior -->
+  <nav class="bottom-bar">
+    <button class="active" onclick="switchTab('tab-meu-mes', this)">O Meu Mês</button>
+    <button onclick="switchTab('tab-escala-geral', this)">Escala Geral</button>
+    <button onclick="switchTab('tab-ramais', this)">Ramais</button>
+  </nav>
+
+  <script>
+    // Configura aqui as ligações CSV publicadas da tua folha de cálculo
+    const URL_INTERNOS_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaj9SkVlZ_5CKVSbB5KhePo12UGQqudjbwfqOOnzQQrEzbQwS_IYjuU_I8_OfLrHqAOw9kRCGkzRtI/pub?gid=1670118731&single=true&output=csv";
+    const URL_ESCALAS_CSV  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaj9SkVlZ_5CKVSbB5KhePo12UGQqudjbwfqOOnzQQrEzbQwS_IYjuU_I8_OfLrHqAOw9kRCGkzRtI/pub?gid=947242298&single=true&output=csv";
+
+    let dbInternos = [];
+    let dbEscalas = [];
+
+    // Conversão CSV -> JSON Simples
+    function parseCSV(text) {
+      const lines = text.trim().split("\n");
+      const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g, ''));
+      return lines.slice(1).map(line => {
+        const values = line.split(",").map(v => v.trim().replace(/^"|"$/g, ''));
+        return headers.reduce((obj, header, i) => { obj[header] = values[i]; return obj; }, {});
+      });
+    }
+
+    async function carregarDados() {
+      try {
+        const [resUsers, resEscalas] = await Promise.all([
+          fetch(URL_INTERNOS_CSV),
+          fetch(URL_ESCALAS_CSV)
+        ]);
+        dbInternos = parseCSV(await resUsers.text());
+        dbEscalas = parseCSV(await resEscalas.text());
+        renderizarApp();
+      } catch (err) {
+        console.error("Falha ao sincronizar dados:", err);
+      }
+    }
+
+    // Gestão de Sessão Local
+    const formLogin = document.getElementById('form-login');
+    formLogin.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const user = document.getElementById('user').value.trim();
+      const pass = document.getElementById('pass').value.trim();
+      
+      const auth = dbInternos.find(u => u.username === user && u.password === pass);
+      if (auth) {
+        localStorage.setItem('sessao_internos_saojoao', JSON.stringify(auth));
+        renderizarApp();
+      } else {
+        alert("Credenciais inválidas.");
+      }
+    });
+
+    function renderizarApp() {
+      const sessao = JSON.parse(localStorage.getItem('sessao_internos_saojoao'));
+      if (!sessao) {
+        document.getElementById('login-view').style.display = 'flex';
+        return;
+      }
+
+      document.getElementById('login-view').style.display = 'none';
+      document.getElementById('label-user').textContent = sessao.nome;
+      document.getElementById('tab-meu-mes').style.display = 'block';
+
+      // Filtragem do utilizador autenticado
+      const turnosPessoais = dbEscalas.filter(e => e.username === sessao.username);
+      
+      let urg = 0, bloco = 0, res = 0;
+      const containerPessoais = document.getElementById('lista-turnos-pessoais');
+      containerPessoais.innerHTML = '';
+
+      turnosPessoais.forEach(t => {
+        if (t.tipo === 'Urgência') urg++;
+        if (t.tipo === 'Bloco') bloco++;
+        if (t.tipo === 'Residência') res++;
+
+        const div = document.createElement('div');
+        div.className = `item-card ${t.tipo.toLowerCase()}`;
+        div.innerHTML = `<h4>${t.data} — ${t.tipo}</h4><p>${t.detalhe || 'Serviço Regular'}</p>`;
+        containerPessoais.appendChild(div);
+      });
+
+      document.getElementById('kpi-urg').textContent = urg;
+      document.getElementById('kpi-bloco').textContent = bloco;
+      document.getElementById('kpi-res').textContent = res;
+    }
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.container').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).style.display = 'block';
+      btn.classList.add('active');
+    }
+
+    // Registo do Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(console.error);
+    }
+
+    window.onload = carregarDados;
+  </script>
+</body>
+</html>
