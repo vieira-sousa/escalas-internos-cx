@@ -7,7 +7,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Escalas Cirurgia Geral - ULS São João</title>
-  <link rel="manifest" href="manifest.json">
   <style>
     :root {
       /* Normas Cromáticas ULS São João */
@@ -106,7 +105,7 @@
       </div>
       <div class="form-group">
         <label>Palavra-passe</label>
-        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter') login()">
       </div>
       <button class="btn-submit" onclick="login()">Iniciar Sessão</button>
     </div>
@@ -206,83 +205,102 @@
   </div>
 
   <script>
-const URL_INTERNOS_CSV       = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaj9SkVlZ_5CKVSbB5KhePo12UGQqudjbwfqOOnzQQrEzbQwS_IYjuU_I8_OfLrHqAOw9kRCGkzRtI/pub?gid=1670118731&single=true&output=csv";
-const URL_ESCALAS_CSV        = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaj9SkVlZ_5CKVSbB5KhePo12UGQqudjbwfqOOnzQQrEzbQwS_IYjuU_I8_OfLrHqAOw9kRCGkzRtI/pub?gid=947242298&single=true&output=csv";
-const URL_APPS_SCRIPT_TROCAS = "https://script.google.com/macros/s/AKfycbytHcebYLb5tdJD-iJZ87dPxhctVAt44qHfxyamPVbhRhWT-vhrIuciNkcPnmIZXc9J/exec";
+    const URL_INTERNOS_CSV       = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaj9SkVlZ_5CKVSbB5KhePo12UGQqudjbwfqOOnzQQrEzbQwS_IYjuU_I8_OfLrHqAOw9kRCGkzRtI/pub?gid=1670118731&single=true&output=csv";
+    const URL_ESCALAS_CSV        = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaj9SkVlZ_5CKVSbB5KhePo12UGQqudjbwfqOOnzQQrEzbQwS_IYjuU_I8_OfLrHqAOw9kRCGkzRtI/pub?gid=947242298&single=true&output=csv";
+    const URL_APPS_SCRIPT_TROCAS = "https://script.google.com/macros/s/AKfycbytHcebYLb5tdJD-iJZ87dPxhctVAt44qHfxyamPVbhRhWT-vhrIuciNkcPnmIZXc9J/exec";
 
-let currentUser = JSON.parse(localStorage.getItem("ulssj_user")) || null;
-let dbEscalas   = [];
-let dbInternos  = [];
-let currentTab  = "mine";
-let searchQuery = "";
+    let currentUser = JSON.parse(localStorage.getItem("ulssj_user")) || null;
+    let dbEscalas   = [];
+    let dbInternos  = [];
+    let currentTab  = "mine";
+    let searchQuery = "";
 
-// Parser simples de CSV
-function parseCSV(text) {
-  const lines = text.trim().split("\n");
-  const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g, ''));
-  return lines.slice(1).map(line => {
-    const values = line.split(",").map(v => v.trim().replace(/^"|"$/g, ''));
-    return headers.reduce((obj, header, i) => { obj[header] = values[i]; return obj; }, {});
-  });
-}
+    // Parser robusto de CSV com normalização de cabeçalhos
+    function parseCSV(text) {
+      if (!text || !text.trim()) return [];
+      const cleanText = text.replace(/^\uFEFF/, ""); // Remove BOM
+      const lines = cleanText.trim().split(/\r?\n/);
+      if (lines.length < 2) return [];
 
-// 1. Autenticação contra a folha de internos
-async function login() {
-  const u = document.getElementById("username").value.trim().toLowerCase();
-  const p = document.getElementById("password").value;
-
-  try {
-    const res = await fetch(URL_INTERNOS_CSV + (URL_INTERNOS_CSV.includes("?") ? "&" : "?") + "t=" + Date.now());
-    const csv = await res.text();
-    dbInternos = parseCSV(csv);
-
-    const found = dbInternos.find(user => user.username?.toLowerCase() === u && user.password === p);
-    if (found) {
-      currentUser = found;
-      localStorage.setItem("ulssj_user", JSON.stringify(found));
-      bootApp();
-    } else {
-      alert("Utilizador ou password incorretos.");
+      const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
+      
+      return lines.slice(1).map(line => {
+        if (!line.trim()) return null;
+        // Tratamento simples para valores separados por vírgula
+        const values = line.split(",").map(v => v.trim().replace(/^"|"$/g, ''));
+        const row = {};
+        headers.forEach((header, i) => {
+          row[header] = values[i] !== undefined ? values[i] : "";
+        });
+        return row;
+      }).filter(Boolean);
     }
-  } catch (e) {
-    alert("Erro ao aceder à folha de internos. Confirma se o link CSV está publicado na web.");
-  }
-}
 
-function logout() {
-  localStorage.removeItem("ulssj_user");
-  currentUser = null;
-  document.getElementById("app-view").style.display = "none";
-  document.getElementById("login-view").style.display = "flex";
-}
+    // 1. Autenticação
+    async function login() {
+      const u = document.getElementById("username").value.trim().toLowerCase();
+      const p = document.getElementById("password").value;
 
-// 2. Carregamento inicial de dados
-async function bootApp() {
-  document.getElementById("login-view").style.display = "none";
-  document.getElementById("app-view").style.display = "block";
+      if (!u || !p) {
+        alert("Por favor preenche o utilizador e a palavra-passe.");
+        return;
+      }
 
-  try {
-    const [resEscalas, resInternos] = await Promise.all([
-      fetch(URL_ESCALAS_CSV + (URL_ESCALAS_CSV.includes("?") ? "&" : "?") + "t=" + Date.now()),
-      fetch(URL_INTERNOS_CSV + (URL_INTERNOS_CSV.includes("?") ? "&" : "?") + "t=" + Date.now())
-    ]);
+      try {
+        const res = await fetch(URL_INTERNOS_CSV + (URL_INTERNOS_CSV.includes("?") ? "&" : "?") + "t=" + Date.now());
+        const csv = await res.text();
+        dbInternos = parseCSV(csv);
 
-    dbEscalas  = parseCSV(await resEscalas.text());
-    dbInternos = parseCSV(await resInternos.text());
+        const found = dbInternos.find(user => (user.username || "").toLowerCase() === u && user.password === p);
+        if (found) {
+          currentUser = found;
+          localStorage.setItem("ulssj_user", JSON.stringify(found));
+          bootApp();
+        } else {
+          alert("Utilizador ou password incorretos.");
+        }
+      } catch (e) {
+        console.error("Erro no login:", e);
+        alert("Erro ao aceder à folha de internos. Confirma se o link CSV está publicado na web.");
+      }
+    }
 
-    calculateStats();
-    populateTrocasForm();
-    renderView();
-  } catch (e) {
-    document.getElementById("list-mine").innerHTML = "<div class='loader'>Erro ao sincronizar dados com o Google Sheets.</div>";
-  }
-}
+    function logout() {
+      localStorage.removeItem("ulssj_user");
+      currentUser = null;
+      document.getElementById("app-view").style.display = "none";
+      document.getElementById("login-view").style.display = "flex";
+    }
 
-function calculateStats() {
-      const myShifts = dbEscalas.filter(s => s.username?.toLowerCase() === currentUser.username.toLowerCase());
-      const urg = myShifts.filter(s => (s.setor || '').toLowerCase().includes("urg")).length;
-      const bloco = myShifts.filter(s => (s.setor || '').toLowerCase().includes("bloco")).length;
-      const res = myShifts.filter(s => (s.setor || '').toLowerCase().includes("resid") || (s.setor || '').toLowerCase().includes("prev")).length;
+    // 2. Carregamento inicial de dados
+    async function bootApp() {
+      document.getElementById("login-view").style.display = "none";
+      document.getElementById("app-view").style.display = "block";
+
+      try {
+        const [resEscalas, resInternos] = await Promise.all([
+          fetch(URL_ESCALAS_CSV + (URL_ESCALAS_CSV.includes("?") ? "&" : "?") + "t=" + Date.now()),
+          fetch(URL_INTERNOS_CSV + (URL_INTERNOS_CSV.includes("?") ? "&" : "?") + "t=" + Date.now())
+        ]);
+
+        dbEscalas  = parseCSV(await resEscalas.text());
+        dbInternos = parseCSV(await resInternos.text());
+
+        calculateStats();
+        populateTrocasForm();
+        switchTab("mine"); // Garante que a primeira aba é exibida visualmente
+      } catch (e) {
+        console.error("Erro ao sincronizar dados:", e);
+        document.getElementById("list-mine").innerHTML = "<div class='loader'>Erro ao sincronizar dados com o Google Sheets.</div>";
+      }
+    }
+
+    function calculateStats() {
+      if (!currentUser) return;
+      const myShifts = dbEscalas.filter(s => (s.username || "").toLowerCase() === (currentUser.username || "").toLowerCase());
+      const urg = myShifts.filter(s => (s.setor || "").toLowerCase().includes("urg")).length;
+      const bloco = myShifts.filter(s => (s.setor || "").toLowerCase().includes("bloco")).length;
+      const res = myShifts.filter(s => (s.setor || "").toLowerCase().includes("resid") || (s.setor || "").toLowerCase().includes("prev")).length;
 
       document.getElementById("stat-urg").innerText = urg;
       document.getElementById("stat-bloco").innerText = bloco;
@@ -292,10 +310,12 @@ function calculateStats() {
     function switchTab(tab) {
       currentTab = tab;
       document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-      document.getElementById(`btn-tab-${tab}`).classList.add("active");
+      const activeBtn = document.getElementById(`btn-tab-${tab}`);
+      if (activeBtn) activeBtn.classList.add("active");
 
       document.querySelectorAll(".container").forEach(c => c.style.display = "none");
-      document.getElementById(`tab-${tab}`).style.display = "block";
+      const activeTabEl = document.getElementById(`tab-${tab}`);
+      if (activeTabEl) activeTabEl.style.display = "block";
 
       document.getElementById("stats-section").style.display = (tab === "mine") ? "grid" : "none";
       document.getElementById("filter-wrapper").style.display = (tab === "trocas") ? "none" : "block";
@@ -309,17 +329,18 @@ function calculateStats() {
     }
 
     function populateTrocasForm() {
-      const myShifts = dbEscalas.filter(s => s.username?.toLowerCase() === currentUser.username.toLowerCase());
+      if (!currentUser) return;
+      const myShifts = dbEscalas.filter(s => (s.username || "").toLowerCase() === (currentUser.username || "").toLowerCase());
       const selectShift = document.getElementById("troca-meu-turno");
       selectShift.innerHTML = myShifts.map(s => {
-        const timeStr = (s.hora_inicio && s.hora_fim) ? `${s.hora_inicio}-${s.hora_fim}` : (s.turno || '');
+        const timeStr = (s.hora_inicio && s.hora_fim) ? `${s.hora_inicio}-${s.hora_fim}` : (s.turno || 'Dia');
         return `<option value="${s.data} | ${timeStr} | ${s.setor}">${s.data} (${timeStr}) — ${s.setor}</option>`;
       }).join("") || "<option>Sem turnos atribuídos</option>";
 
       const selectColega = document.getElementById("troca-colega");
       selectColega.innerHTML = dbInternos
-        .filter(u => u.username?.toLowerCase() !== currentUser.username.toLowerCase())
-        .map(u => `<option value="${u.nome} (${u.username})">${u.nome} - ${u.cargo || 'Interno'}</option>`)
+        .filter(u => (u.username || "").toLowerCase() !== (currentUser.username || "").toLowerCase())
+        .map(u => `<option value="${u.nome} (${u.username})">${u.nome || u.username} - ${u.cargo || 'Interno'}</option>`)
         .join("");
     }
 
@@ -339,7 +360,7 @@ function calculateStats() {
       btn.disabled = true;
 
       const payload = {
-        requerente: currentUser.nome + ` (${currentUser.username})`,
+        requerente: (currentUser.nome || currentUser.username) + ` (${currentUser.username})`,
         turno_original: turnoOrig,
         colega_proposto: colega,
         turno_proposto: comp,
@@ -353,11 +374,12 @@ function calculateStats() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-        alert("Pedido de troca submetido com sucesso! Será validado pelo responsável da escala.");
+        alert("Pedido de troca submetido com sucesso! Fica registado na folha para validação.");
         document.getElementById("troca-compensacao").value = "";
         document.getElementById("troca-motivo").value = "";
         switchTab("mine");
       } catch (err) {
+        console.error("Erro na troca:", err);
         alert("Erro ao submeter pedido. Verifica a ligação à internet.");
       } finally {
         btn.innerText = "Enviar Pedido";
@@ -366,7 +388,7 @@ function calculateStats() {
     }
 
     function renderCard(s, isAllView) {
-      const setorLower = (s.setor || '').toLowerCase();
+      const setorLower = (s.setor || "").toLowerCase();
       const typeClass = setorLower.includes("urg") ? "urgencia" :
                         setorLower.includes("bloco") ? "bloco" :
                         (setorLower.includes("resid") || setorLower.includes("prev")) ? "residencia" : "enfermaria";
@@ -378,10 +400,10 @@ function calculateStats() {
       return `
         <div class="shift-card ${typeClass}">
           <div class="shift-top">
-            <span class="shift-date">📅 ${s.data}</span>
+            <span class="shift-date">📅 ${s.data || 'Data N/D'}</span>
             <span class="shift-time">⏰ ${horario}</span>
           </div>
-          <div class="shift-title">${s.setor}</div>
+          <div class="shift-title">${s.setor || 'Atividade Cirúrgica'}</div>
           <div class="shift-desc">
             <span>👤 <b>${s.papel || 'Alocado'}</b></span>
             ${isAllView ? `<span>Colega: <b>${s.username}</b></span>` : ''}
@@ -391,8 +413,10 @@ function calculateStats() {
     }
 
     function renderView() {
+      if (!currentUser) return;
+
       if (currentTab === "mine") {
-        let list = dbEscalas.filter(s => s.username?.toLowerCase() === currentUser.username.toLowerCase());
+        let list = dbEscalas.filter(s => (s.username || "").toLowerCase() === (currentUser.username || "").toLowerCase());
         if (searchQuery) {
           list = list.filter(s => 
             (s.data || "").toLowerCase().includes(searchQuery) ||
@@ -403,7 +427,7 @@ function calculateStats() {
         const container = document.getElementById("list-mine");
         container.innerHTML = list.length 
           ? list.map(s => renderCard(s, false)).join("") 
-          : "<div class='loader'>Sem turnos para mostrar.</div>";
+          : "<div class='loader'>Sem turnos atribuídos para este utilizador.</div>";
       }
 
       if (currentTab === "all") {
@@ -435,7 +459,7 @@ function calculateStats() {
         container.innerHTML = list.length ? list.map(c => `
           <div class="contact-item">
             <div class="contact-details">
-              <h4>${c.nome}</h4>
+              <h4>${c.nome || c.username}</h4>
               <p>${c.cargo || 'Interno'} &bull; Ramal/Tel: ${c.telefone || 'N/A'}</p>
             </div>
             ${c.telefone ? `<a href="tel:${c.telefone}" class="contact-action">&#9742;</a>` : ''}
@@ -444,6 +468,7 @@ function calculateStats() {
       }
     }
 
+    // Arranque automático se já houver sessão guardada
     if (currentUser) {
       bootApp();
     }
