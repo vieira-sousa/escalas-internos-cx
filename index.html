@@ -206,77 +206,77 @@
   </div>
 
   <script>
-    // Substitui pelos teus links CSV gerados em "Publicar na Web"
-    const URL_USERS =  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaj9SkVlZ_5CKVSbB5KhePo12UGQqudjbwfqOOnzQQrEzbQwS_IYjuU_I8_OfLrHqAOw9kRCGkzRtI/pub?gid=1670118731&single=true&output=csv";
-    const URL_SHIFTS  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaj9SkVlZ_5CKVSbB5KhePo12UGQqudjbwfqOOnzQQrEzbQwS_IYjuU_I8_OfLrHqAOw9kRCGkzRtI/pub?gid=947242298&single=true&output=csv";
+const URL_INTERNOS_CSV       = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaj9SkVlZ_5CKVSbB5KhePo12UGQqudjbwfqOOnzQQrEzbQwS_IYjuU_I8_OfLrHqAOw9kRCGkzRtI/pub?gid=1670118731&single=true&output=csv";
+const URL_ESCALAS_CSV        = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaj9SkVlZ_5CKVSbB5KhePo12UGQqudjbwfqOOnzQQrEzbQwS_IYjuU_I8_OfLrHqAOw9kRCGkzRtI/pub?gid=947242298&single=true&output=csv";
+const URL_APPS_SCRIPT_TROCAS = "COLOCA_AQUI_O_URL_DO_APPS_SCRIPT";
 
-    
-    // Substitui pelo URL da Web App gerado no Google Apps Script (Passo 1)
-    const URL_APPS_SCRIPT_TROCAS = "COLOCA_AQUI_O_URL_DO_APPS_SCRIPT";
+let currentUser = JSON.parse(localStorage.getItem("ulssj_user")) || null;
+let dbEscalas   = [];
+let dbInternos  = [];
+let currentTab  = "mine";
+let searchQuery = "";
 
-    let currentUser = JSON.parse(localStorage.getItem("ulssj_user")) || null;
-    let shiftsData = [];
-    let usersData = [];
-    let currentTab = "mine";
-    let searchQuery = "";
+// Parser simples de CSV
+function parseCSV(text) {
+  const lines = text.trim().split("\n");
+  const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g, ''));
+  return lines.slice(1).map(line => {
+    const values = line.split(",").map(v => v.trim().replace(/^"|"$/g, ''));
+    return headers.reduce((obj, header, i) => { obj[header] = values[i]; return obj; }, {});
+  });
+}
 
-    function parseCSV(text) {
-      const lines = text.trim().split("\n");
-      const headers = lines[0].split(",").map(h => h.trim().replace(/\r/g, ""));
-      return lines.slice(1).map(line => {
-        const values = line.split(",").map(v => v.trim().replace(/\r/g, ""));
-        return headers.reduce((obj, h, i) => { obj[h] = values[i]; return obj; }, {});
-      });
+// 1. Autenticação contra a folha de internos
+async function login() {
+  const u = document.getElementById("username").value.trim().toLowerCase();
+  const p = document.getElementById("password").value;
+
+  try {
+    const res = await fetch(URL_INTERNOS_CSV + (URL_INTERNOS_CSV.includes("?") ? "&" : "?") + "t=" + Date.now());
+    const csv = await res.text();
+    dbInternos = parseCSV(csv);
+
+    const found = dbInternos.find(user => user.username?.toLowerCase() === u && user.password === p);
+    if (found) {
+      currentUser = found;
+      localStorage.setItem("ulssj_user", JSON.stringify(found));
+      bootApp();
+    } else {
+      alert("Utilizador ou password incorretos.");
     }
+  } catch (e) {
+    alert("Erro ao aceder à folha de internos. Confirma se o link CSV está publicado na web.");
+  }
+}
 
-    async function login() {
-      const u = document.getElementById("username").value.trim().toLowerCase();
-      const p = document.getElementById("password").value;
+function logout() {
+  localStorage.removeItem("ulssj_user");
+  currentUser = null;
+  document.getElementById("app-view").style.display = "none";
+  document.getElementById("login-view").style.display = "flex";
+}
 
-      try {
-        const res = await fetch(URL_USERS + (URL_USERS.includes("?") ? "&" : "?") + "t=" + Date.now());
-        const csv = await res.text();
-        usersData = parseCSV(csv);
+// 2. Carregamento inicial de dados
+async function bootApp() {
+  document.getElementById("login-view").style.display = "none";
+  document.getElementById("app-view").style.display = "block";
 
-        const found = usersData.find(user => user.username?.toLowerCase() === u && user.password === p);
-        if (found) {
-          currentUser = found;
-          localStorage.setItem("ulssj_user", JSON.stringify(found));
-          bootApp();
-        } else {
-          alert("Utilizador ou password incorretos.");
-        }
-      } catch (e) {
-        alert("Erro ao aceder à folha de utilizadores. Verifica os links publicados.");
-      }
-    }
+  try {
+    const [resEscalas, resInternos] = await Promise.all([
+      fetch(URL_ESCALAS_CSV + (URL_ESCALAS_CSV.includes("?") ? "&" : "?") + "t=" + Date.now()),
+      fetch(URL_INTERNOS_CSV + (URL_INTERNOS_CSV.includes("?") ? "&" : "?") + "t=" + Date.now())
+    ]);
 
-    function logout() {
-      localStorage.removeItem("ulssj_user");
-      currentUser = null;
-      document.getElementById("app-view").style.display = "none";
-      document.getElementById("login-view").style.display = "flex";
-    }
+    dbEscalas  = parseCSV(await resEscalas.text());
+    dbInternos = parseCSV(await resInternos.text());
 
-    async function bootApp() {
-      document.getElementById("login-view").style.display = "none";
-      document.getElementById("app-view").style.display = "block";
-
-      try {
-        const [shiftsRes, usersRes] = await Promise.all([
-          fetch(URL_SHIFTS + (URL_SHIFTS.includes("?") ? "&" : "?") + "t=" + Date.now()),
-          fetch(URL_USERS + (URL_USERS.includes("?") ? "&" : "?") + "t=" + Date.now())
-        ]);
-        shiftsData = parseCSV(await shiftsRes.text());
-        usersData = parseCSV(await usersRes.text());
-
-        calculateStats();
-        populateTrocasForm();
-        renderView();
-      } catch (e) {
-        document.getElementById("list-mine").innerHTML = "<div class='loader'>Erro ao atualizar dados da folha de cálculo.</div>";
-      }
-    }
+    calculateStats();
+    populateTrocasForm();
+    renderView();
+  } catch (e) {
+    document.getElementById("list-mine").innerHTML = "<div class='loader'>Erro ao sincronizar dados com o Google Sheets.</div>";
+  }
+}
 
     function calculateStats() {
       const myShifts = shiftsData.filter(s => s.username?.toLowerCase() === currentUser.username.toLowerCase());
