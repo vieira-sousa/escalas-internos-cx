@@ -2,243 +2,451 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#6D1D14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Escalas Cirurgia Geral - ULS São João</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#6D1D14">
   <style>
     :root {
+      /* Normas Cromáticas ULS São João */
       --uls-red: #6D1D14;
+      --uls-red-dark: #52140d;
       --uls-orange: #EE7F00;
+      --uls-orange-subtle: #fef3e6;
       --uls-dark: #1A1A1A;
       --uls-gray: #585832;
-      --uls-bg: #F8F9FA;
-      --card-bg: #FFFFFF;
+      --uls-border: #e2e8f0;
+      --uls-bg: #f8fafc;
+      --card-bg: #ffffff;
+      
+      /* Alertas / Setores */
+      --badge-urgencia: #c026d3;
+      --badge-bloco: #EE7F00;
+      --badge-residencia: #6D1D14;
+      --badge-enfermaria: #059669;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Calibri, 'Segoe UI', Arial, sans-serif; }
-    body { background: var(--uls-bg); color: var(--uls-dark); padding-bottom: 70px; }
-    
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Calibri, 'Segoe UI', -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--uls-bg); color: var(--uls-dark); padding-bottom: 85px; min-height: 100vh; }
+
     /* Header Institucional */
-    header {
-      background: var(--uls-red);
-      color: #FFF;
-      padding: 14px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-    header h1 { font-size: 1.05rem; font-weight: 700; letter-spacing: 0.3px; }
-    header span { font-size: 0.8rem; opacity: 0.85; }
+    header { background: var(--uls-red); color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 8px rgba(109,29,20,0.2); }
+    .brand-title { font-weight: 700; font-size: 1.05rem; letter-spacing: 0.3px; line-height: 1.1; }
+    .brand-title span { color: var(--uls-orange); font-size: 0.8rem; font-weight: 400; display: block; }
+    .btn-logout { background: rgba(255,255,255,0.15); border: none; color: white; padding: 5px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
 
-    /* Login Overlay */
-    #login-view {
-      position: fixed; inset: 0; background: var(--uls-bg);
-      display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px;
-    }
-    .login-card {
-      background: #FFF; padding: 28px; border-radius: 8px; width: 100%; max-width: 360px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-top: 4px solid var(--uls-red);
-    }
-    .login-card h2 { color: var(--uls-red); font-size: 1.25rem; margin-bottom: 6px; }
-    .login-card p { font-size: 0.85rem; color: #666; margin-bottom: 20px; }
+    /* Login */
+    #login-view { position: fixed; inset: 0; background: var(--uls-bg); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+    .login-card { background: #fff; border-radius: 12px; padding: 28px; width: 100%; max-width: 380px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border-top: 4px solid var(--uls-red); }
+    .login-card h2 { color: var(--uls-red); font-size: 1.35rem; margin-bottom: 4px; }
+    .login-card p { font-size: 0.85rem; color: #64748b; margin-bottom: 20px; }
     .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; }
-    .form-group input {
-      width: 100%; padding: 10px; border: 1px solid #CCC; border-radius: 4px; font-size: 0.95rem;
-    }
-    .btn-primary {
-      width: 100%; padding: 12px; background: var(--uls-red); color: #FFF; border: none;
-      border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 0.95rem; margin-top: 5px;
-    }
+    .form-group label { display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 5px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 11px 12px; border: 1.5px solid var(--uls-border); border-radius: 8px; font-size: 0.95rem; outline: none; background: #fff; color: var(--uls-dark); }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--uls-orange); }
+    .btn-submit { width: 100%; background: var(--uls-red); color: white; border: none; padding: 13px; border-radius: 8px; font-size: 0.95rem; font-weight: 700; cursor: pointer; margin-top: 6px; transition: background 0.2s; }
+    .btn-submit:active { background: var(--uls-red-dark); }
 
-    /* Conteúdos e Cartões */
-    .container { padding: 16px; max-width: 600px; margin: 0 auto; display: none; }
-    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-    .kpi-card {
-      background: var(--card-bg); padding: 12px; border-radius: 6px; text-align: center;
-      border: 1px solid #E5E5E5; border-bottom: 3px solid var(--uls-orange);
-    }
-    .kpi-num { font-size: 1.4rem; font-weight: 700; color: var(--uls-red); }
-    .kpi-title { font-size: 0.75rem; text-transform: uppercase; color: #666; margin-top: 2px; }
+    /* Indicadores de Turnos Rápidos */
+    .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 20px; }
+    .stat-box { background: var(--card-bg); border-radius: 10px; padding: 12px 6px; text-align: center; border: 1px solid var(--uls-border); box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+    .stat-number { font-size: 1.3rem; font-weight: 800; color: var(--uls-red); }
+    .stat-label { font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-top: 2px; }
 
-    .item-card {
-      background: #FFF; padding: 14px; border-radius: 6px; margin-bottom: 10px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-left: 4px solid var(--uls-red);
-    }
-    .item-card.bloco { border-left-color: var(--uls-orange); }
-    .item-card.ausencia { border-left-color: var(--uls-gray); }
-    .item-card h4 { font-size: 0.95rem; margin-bottom: 4px; }
-    .item-card p { font-size: 0.85rem; color: #555; }
+    /* Barra de Pesquisa */
+    .filter-section { padding: 0 20px; margin-bottom: 14px; }
+    .search-input { width: 100%; padding: 11px 14px; background: var(--card-bg); border: 1.5px solid var(--uls-border); border-radius: 10px; font-size: 0.9rem; outline: none; }
+    .search-input:focus { border-color: var(--uls-orange); }
+
+    /* Cartões de Escala com Horas */
+    .container { padding: 0 20px; display: none; }
+    .shift-card { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 12px; border: 1px solid var(--uls-border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 6px; position: relative; overflow: hidden; }
+    .shift-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--uls-orange); }
+    .shift-card.urgencia::before { background: #dc2626; }
+    .shift-card.bloco::before { background: var(--uls-orange); }
+    .shift-card.residencia::before { background: var(--uls-red); }
+    .shift-card.enfermaria::before { background: var(--badge-enfermaria); }
+
+    .shift-top { display: flex; justify-content: space-between; align-items: center; }
+    .shift-date { font-weight: 700; font-size: 0.95rem; color: var(--uls-red); }
+    .shift-time { font-size: 0.78rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: var(--uls-orange-subtle); color: var(--uls-orange); border: 1px solid #fed7aa; }
+    .shift-card.urgencia .shift-time { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+    .shift-card.residencia .shift-time { background: #fdf2f2; color: var(--uls-red); border-color: #fecaca; }
+    
+    .shift-title { font-weight: 700; font-size: 1.02rem; color: #0f172a; }
+    .shift-desc { font-size: 0.88rem; color: #475569; display: flex; align-items: center; justify-content: space-between; }
+
+    /* Contactos & Ramais */
+    .contact-item { background: var(--card-bg); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; border: 1px solid var(--uls-border); display: flex; justify-content: space-between; align-items: center; }
+    .contact-details h4 { font-size: 0.95rem; color: var(--uls-red); margin-bottom: 2px; }
+    .contact-details p { font-size: 0.8rem; color: #64748b; }
+    .contact-action { width: 36px; height: 36px; background: var(--uls-orange-subtle); color: var(--uls-orange); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-size: 1.1rem; border: 1px solid #fed7aa; }
 
     /* Barra de Navegação Inferior */
-    nav.bottom-bar {
-      position: fixed; bottom: 0; left: 0; right: 0; background: #FFF;
-      display: flex; border-top: 1px solid #DDD; height: 58px; z-index: 10;
-    }
-    nav button {
-      flex: 1; border: none; background: transparent; font-size: 0.78rem;
-      font-weight: 600; color: #777; cursor: pointer; display: flex;
-      flex-direction: column; align-items: center; justify-content: center;
-    }
-    nav button.active { color: var(--uls-red); }
+    .navbar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--uls-border); display: flex; justify-content: space-around; padding: 8px 0 calc(8px + env(safe-area-inset-bottom)); z-index: 100; }
+    .nav-btn { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 3px; color: #64748b; font-size: 0.72rem; font-weight: 600; cursor: pointer; width: 25%; }
+    .nav-btn.active { color: var(--uls-red); font-weight: 700; }
+    .nav-btn svg { width: 20px; height: 20px; fill: currentColor; }
+
+    .loader { text-align: center; padding: 40px; color: #94a3b8; font-size: 0.9rem; }
   </style>
 </head>
 <body>
 
-  <!-- Tela de Login -->
+  <!-- Vista: Login -->
   <div id="login-view">
     <div class="login-card">
-      <h2>ULS São João</h2>
-      <p>Cirurgia Geral — Escala de Internos</p>
-      <form id="form-login">
+      <h2>ULS SÃO JOÃO</h2>
+      <p>Cirurgia Geral — Gestão de Escalas</p>
+      <div class="form-group">
+        <label>Utilizador</label>
+        <input type="text" id="username" placeholder="ex: jose.sousa" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>Palavra-passe</label>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-submit" onclick="login()">Iniciar Sessão</button>
+    </div>
+  </div>
+
+  <!-- Vista: Principal -->
+  <div id="app-view" style="display: none;">
+    <header>
+      <div class="brand-title">
+        ULS SÃO JOÃO
+        <span>Cirurgia Geral &bull; Internato</span>
+      </div>
+      <button class="btn-logout" onclick="logout()">Sair</button>
+    </header>
+
+    <!-- Estatísticas Rápidas (Apenas no "Meu Mês") -->
+    <div class="stats-bar" id="stats-section">
+      <div class="stat-box">
+        <div class="stat-number" id="stat-urg">0</div>
+        <div class="stat-label">Urgências</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-number" id="stat-bloco">0</div>
+        <div class="stat-label">Blocos</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-number" id="stat-prev">0</div>
+        <div class="stat-label">Residências</div>
+      </div>
+    </div>
+
+    <!-- Barra de Pesquisa Rápida -->
+    <div class="filter-section" id="filter-wrapper">
+      <input type="text" id="search-input" class="search-input" placeholder="Pesquisar por data, hora, nome ou sala..." oninput="handleSearch()">
+    </div>
+
+    <!-- Tab 1: O Meu Mês -->
+    <div id="tab-mine" class="container">
+      <div id="list-mine"></div>
+    </div>
+
+    <!-- Tab 2: Escala Geral -->
+    <div id="tab-all" class="container">
+      <div id="list-all"></div>
+    </div>
+
+    <!-- Tab 3: Pedir Troca -->
+    <div id="tab-trocas" class="container">
+      <div class="login-card" style="max-width: 100%; box-shadow: none; border: 1px solid var(--uls-border); padding: 20px; border-top-color: var(--uls-orange);">
+        <h3 style="color: var(--uls-red); font-size: 1.15rem; margin-bottom: 4px;">Submeter Pedido de Troca</h3>
+        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 16px;">O pedido será gravado na folha para validação do responsável da escala.</p>
+        
         <div class="form-group">
-          <label>Utilizador</label>
-          <input type="text" id="user" required placeholder="ex.: jmartins">
+          <label>O teu turno a trocar</label>
+          <select id="troca-meu-turno"></select>
         </div>
         <div class="form-group">
-          <label>Palavra-passe</label>
-          <input type="password" id="pass" required>
+          <label>Colega proposto para a troca</label>
+          <select id="troca-colega"></select>
         </div>
-        <button type="submit" class="btn-primary">Entrar</button>
-      </form>
+        <div class="form-group">
+          <label>Turno de compensação proposto</label>
+          <input type="text" id="troca-compensacao" placeholder="ex.: Urgência de 18/10 das 08h-20h (ou a combinar)">
+        </div>
+        <div class="form-group">
+          <label>Motivo / Observações</label>
+          <textarea id="troca-motivo" rows="2" placeholder="ex.: Congresso de Cirurgia / Motivo pessoal"></textarea>
+        </div>
+        <button class="btn-submit" id="btn-enviar-troca" style="background: var(--uls-orange);" onclick="submeterTroca()">Enviar Pedido</button>
+      </div>
     </div>
-  </div>
 
-  <!-- Header Geral -->
-  <header>
-    <div>
-      <h1>ULS SÃO JOÃO</h1>
-      <span>Cirurgia Geral</span>
+    <!-- Tab 4: Contactos & Ramais -->
+    <div id="tab-contacts" class="container">
+      <div id="list-contacts"></div>
     </div>
-    <span id="label-user"></span>
-  </header>
 
-  <!-- Separador 1: O Meu Mês -->
-  <div id="tab-meu-mes" class="container">
-    <div class="kpi-grid">
-      <div class="kpi-card"><div class="kpi-num" id="kpi-urg">0</div><div class="kpi-title">Urgências</div></div>
-      <div class="kpi-card"><div class="kpi-num" id="kpi-bloco">0</div><div class="kpi-title">Blocos</div></div>
-      <div class="kpi-card"><div class="kpi-num" id="kpi-res">0</div><div class="kpi-title">Residência</div></div>
-    </div>
-    <div id="lista-turnos-pessoais"></div>
+    <!-- Barra de Navegação Inferior -->
+    <nav class="navbar">
+      <button class="nav-btn active" id="btn-tab-mine" onclick="switchTab('mine')">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        O Meu Mês
+      </button>
+      <button class="nav-btn" id="btn-tab-all" onclick="switchTab('all')">
+        <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+        Escala Geral
+      </button>
+      <button class="nav-btn" id="btn-tab-trocas" onclick="switchTab('trocas')">
+        <svg viewBox="0 0 24 24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>
+        Pedir Troca
+      </button>
+      <button class="nav-btn" id="btn-tab-contacts" onclick="switchTab('contacts')">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/></svg>
+        Contactos
+      </button>
+    </nav>
   </div>
-
-  <!-- Separador 2: Escala Geral -->
-  <div id="tab-escala-geral" class="container">
-    <h3 style="margin-bottom: 12px; font-size: 1rem;">Distribuição Diária Geral</h3>
-    <input type="date" id="filtro-data" style="width: 100%; padding: 8px; margin-bottom: 14px; border: 1px solid #CCC; border-radius: 4px;">
-    <div id="lista-escala-geral"></div>
-  </div>
-
-  <!-- Separador 3: Contactos & Ramais -->
-  <div id="tab-ramais" class="container">
-    <h3 style="margin-bottom: 12px; font-size: 1rem;">Contactos & Postos Hospitalares</h3>
-    <div id="lista-ramais"></div>
-  </div>
-
-  <!-- Navegação Inferior -->
-  <nav class="bottom-bar">
-    <button class="active" onclick="switchTab('tab-meu-mes', this)">O Meu Mês</button>
-    <button onclick="switchTab('tab-escala-geral', this)">Escala Geral</button>
-    <button onclick="switchTab('tab-ramais', this)">Ramais</button>
-  </nav>
 
   <script>
-    // Configura aqui as ligações CSV publicadas da tua folha de cálculo
-    const URL_INTERNOS_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaj9SkVlZ_5CKVSbB5KhePo12UGQqudjbwfqOOnzQQrEzbQwS_IYjuU_I8_OfLrHqAOw9kRCGkzRtI/pub?gid=1670118731&single=true&output=csv";
-    const URL_ESCALAS_CSV  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaj9SkVlZ_5CKVSbB5KhePo12UGQqudjbwfqOOnzQQrEzbQwS_IYjuU_I8_OfLrHqAOw9kRCGkzRtI/pub?gid=947242298&single=true&output=csv";
+    // Substitui pelos teus links CSV gerados em "Publicar na Web"
+    const URL_USERS =  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaj9SkVlZ_5CKVSbB5KhePo12UGQqudjbwfqOOnzQQrEzbQwS_IYjuU_I8_OfLrHqAOw9kRCGkzRtI/pub?gid=1670118731&single=true&output=csv";
+    const URL_SHIFTS  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaj9SkVlZ_5CKVSbB5KhePo12UGQqudjbwfqOOnzQQrEzbQwS_IYjuU_I8_OfLrHqAOw9kRCGkzRtI/pub?gid=947242298&single=true&output=csv";
 
-    let dbInternos = [];
-    let dbEscalas = [];
+    
+    // Substitui pelo URL da Web App gerado no Google Apps Script (Passo 1)
+    const URL_APPS_SCRIPT_TROCAS = "COLOCA_AQUI_O_URL_DO_APPS_SCRIPT";
 
-    // Conversão CSV -> JSON Simples
+    let currentUser = JSON.parse(localStorage.getItem("ulssj_user")) || null;
+    let shiftsData = [];
+    let usersData = [];
+    let currentTab = "mine";
+    let searchQuery = "";
+
     function parseCSV(text) {
       const lines = text.trim().split("\n");
-      const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g, ''));
+      const headers = lines[0].split(",").map(h => h.trim().replace(/\r/g, ""));
       return lines.slice(1).map(line => {
-        const values = line.split(",").map(v => v.trim().replace(/^"|"$/g, ''));
-        return headers.reduce((obj, header, i) => { obj[header] = values[i]; return obj; }, {});
+        const values = line.split(",").map(v => v.trim().replace(/\r/g, ""));
+        return headers.reduce((obj, h, i) => { obj[h] = values[i]; return obj; }, {});
       });
     }
 
-    async function carregarDados() {
+    async function login() {
+      const u = document.getElementById("username").value.trim().toLowerCase();
+      const p = document.getElementById("password").value;
+
       try {
-        const [resUsers, resEscalas] = await Promise.all([
-          fetch(URL_INTERNOS_CSV),
-          fetch(URL_ESCALAS_CSV)
-        ]);
-        dbInternos = parseCSV(await resUsers.text());
-        dbEscalas = parseCSV(await resEscalas.text());
-        renderizarApp();
-      } catch (err) {
-        console.error("Falha ao sincronizar dados:", err);
+        const res = await fetch(URL_USERS + (URL_USERS.includes("?") ? "&" : "?") + "t=" + Date.now());
+        const csv = await res.text();
+        usersData = parseCSV(csv);
+
+        const found = usersData.find(user => user.username?.toLowerCase() === u && user.password === p);
+        if (found) {
+          currentUser = found;
+          localStorage.setItem("ulssj_user", JSON.stringify(found));
+          bootApp();
+        } else {
+          alert("Utilizador ou password incorretos.");
+        }
+      } catch (e) {
+        alert("Erro ao aceder à folha de utilizadores. Verifica os links publicados.");
       }
     }
 
-    // Gestão de Sessão Local
-    const formLogin = document.getElementById('form-login');
-    formLogin.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const user = document.getElementById('user').value.trim();
-      const pass = document.getElementById('pass').value.trim();
-      
-      const auth = dbInternos.find(u => u.username === user && u.password === pass);
-      if (auth) {
-        localStorage.setItem('sessao_internos_saojoao', JSON.stringify(auth));
-        renderizarApp();
-      } else {
-        alert("Credenciais inválidas.");
-      }
-    });
+    function logout() {
+      localStorage.removeItem("ulssj_user");
+      currentUser = null;
+      document.getElementById("app-view").style.display = "none";
+      document.getElementById("login-view").style.display = "flex";
+    }
 
-    function renderizarApp() {
-      const sessao = JSON.parse(localStorage.getItem('sessao_internos_saojoao'));
-      if (!sessao) {
-        document.getElementById('login-view').style.display = 'flex';
+    async function bootApp() {
+      document.getElementById("login-view").style.display = "none";
+      document.getElementById("app-view").style.display = "block";
+
+      try {
+        const [shiftsRes, usersRes] = await Promise.all([
+          fetch(URL_SHIFTS + (URL_SHIFTS.includes("?") ? "&" : "?") + "t=" + Date.now()),
+          fetch(URL_USERS + (URL_USERS.includes("?") ? "&" : "?") + "t=" + Date.now())
+        ]);
+        shiftsData = parseCSV(await shiftsRes.text());
+        usersData = parseCSV(await usersRes.text());
+
+        calculateStats();
+        populateTrocasForm();
+        renderView();
+      } catch (e) {
+        document.getElementById("list-mine").innerHTML = "<div class='loader'>Erro ao atualizar dados da folha de cálculo.</div>";
+      }
+    }
+
+    function calculateStats() {
+      const myShifts = shiftsData.filter(s => s.username?.toLowerCase() === currentUser.username.toLowerCase());
+      const urg = myShifts.filter(s => (s.setor || '').toLowerCase().includes("urg")).length;
+      const bloco = myShifts.filter(s => (s.setor || '').toLowerCase().includes("bloco")).length;
+      const res = myShifts.filter(s => (s.setor || '').toLowerCase().includes("resid") || (s.setor || '').toLowerCase().includes("prev")).length;
+
+      document.getElementById("stat-urg").innerText = urg;
+      document.getElementById("stat-bloco").innerText = bloco;
+      document.getElementById("stat-prev").innerText = res;
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+      document.getElementById(`btn-tab-${tab}`).classList.add("active");
+
+      document.querySelectorAll(".container").forEach(c => c.style.display = "none");
+      document.getElementById(`tab-${tab}`).style.display = "block";
+
+      document.getElementById("stats-section").style.display = (tab === "mine") ? "grid" : "none";
+      document.getElementById("filter-wrapper").style.display = (tab === "trocas") ? "none" : "block";
+
+      renderView();
+    }
+
+    function handleSearch() {
+      searchQuery = document.getElementById("search-input").value.toLowerCase();
+      renderView();
+    }
+
+    function populateTrocasForm() {
+      const myShifts = shiftsData.filter(s => s.username?.toLowerCase() === currentUser.username.toLowerCase());
+      const selectShift = document.getElementById("troca-meu-turno");
+      selectShift.innerHTML = myShifts.map(s => {
+        const timeStr = (s.hora_inicio && s.hora_fim) ? `${s.hora_inicio}-${s.hora_fim}` : (s.turno || '');
+        return `<option value="${s.data} | ${timeStr} | ${s.setor}">${s.data} (${timeStr}) — ${s.setor}</option>`;
+      }).join("") || "<option>Sem turnos atribuídos</option>";
+
+      const selectColega = document.getElementById("troca-colega");
+      selectColega.innerHTML = usersData
+        .filter(u => u.username?.toLowerCase() !== currentUser.username.toLowerCase())
+        .map(u => `<option value="${u.nome} (${u.username})">${u.nome} - ${u.cargo || 'Interno'}</option>`)
+        .join("");
+    }
+
+    async function submeterTroca() {
+      const turnoOrig = document.getElementById("troca-meu-turno").value;
+      const colega = document.getElementById("troca-colega").value;
+      const comp = document.getElementById("troca-compensacao").value.trim();
+      const motivo = document.getElementById("troca-motivo").value.trim();
+
+      if (!comp) {
+        alert("Por favor indica o turno de compensação proposto (ou 'A definir').");
         return;
       }
 
-      document.getElementById('login-view').style.display = 'none';
-      document.getElementById('label-user').textContent = sessao.nome;
-      document.getElementById('tab-meu-mes').style.display = 'block';
+      const btn = document.getElementById("btn-enviar-troca");
+      btn.innerText = "A enviar pedido...";
+      btn.disabled = true;
 
-      // Filtragem do utilizador autenticado
-      const turnosPessoais = dbEscalas.filter(e => e.username === sessao.username);
-      
-      let urg = 0, bloco = 0, res = 0;
-      const containerPessoais = document.getElementById('lista-turnos-pessoais');
-      containerPessoais.innerHTML = '';
+      const payload = {
+        requerente: currentUser.nome + ` (${currentUser.username})`,
+        turno_original: turnoOrig,
+        colega_proposto: colega,
+        turno_proposto: comp,
+        motivo: motivo || "Sem observações"
+      };
 
-      turnosPessoais.forEach(t => {
-        if (t.tipo === 'Urgência') urg++;
-        if (t.tipo === 'Bloco') bloco++;
-        if (t.tipo === 'Residência') res++;
-
-        const div = document.createElement('div');
-        div.className = `item-card ${t.tipo.toLowerCase()}`;
-        div.innerHTML = `<h4>${t.data} — ${t.tipo}</h4><p>${t.detalhe || 'Serviço Regular'}</p>`;
-        containerPessoais.appendChild(div);
-      });
-
-      document.getElementById('kpi-urg').textContent = urg;
-      document.getElementById('kpi-bloco').textContent = bloco;
-      document.getElementById('kpi-res').textContent = res;
+      try {
+        await fetch(URL_APPS_SCRIPT_TROCAS, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        alert("Pedido de troca submetido com sucesso! Será validado pelo responsável da escala.");
+        document.getElementById("troca-compensacao").value = "";
+        document.getElementById("troca-motivo").value = "";
+        switchTab("mine");
+      } catch (err) {
+        alert("Erro ao submeter pedido. Verifica a ligação à internet.");
+      } finally {
+        btn.innerText = "Enviar Pedido";
+        btn.disabled = false;
+      }
     }
 
-    function switchTab(tabId, btn) {
-      document.querySelectorAll('.container').forEach(el => el.style.display = 'none');
-      document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
-      document.getElementById(tabId).style.display = 'block';
-      btn.classList.add('active');
+    function renderCard(s, isAllView) {
+      const setorLower = (s.setor || '').toLowerCase();
+      const typeClass = setorLower.includes("urg") ? "urgencia" :
+                        setorLower.includes("bloco") ? "bloco" :
+                        (setorLower.includes("resid") || setorLower.includes("prev")) ? "residencia" : "enfermaria";
+
+      const horario = (s.hora_inicio && s.hora_fim) 
+        ? `${s.hora_inicio} – ${s.hora_fim}` 
+        : (s.turno || 'Horário flexível');
+
+      return `
+        <div class="shift-card ${typeClass}">
+          <div class="shift-top">
+            <span class="shift-date">📅 ${s.data}</span>
+            <span class="shift-time">⏰ ${horario}</span>
+          </div>
+          <div class="shift-title">${s.setor}</div>
+          <div class="shift-desc">
+            <span>👤 <b>${s.papel || 'Alocado'}</b></span>
+            ${isAllView ? `<span>Colega: <b>${s.username}</b></span>` : ''}
+          </div>
+        </div>
+      `;
     }
 
-    // Registo do Service Worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(console.error);
+    function renderView() {
+      if (currentTab === "mine") {
+        let list = shiftsData.filter(s => s.username?.toLowerCase() === currentUser.username.toLowerCase());
+        if (searchQuery) {
+          list = list.filter(s => 
+            (s.data || "").toLowerCase().includes(searchQuery) ||
+            (s.setor || "").toLowerCase().includes(searchQuery) ||
+            (s.papel || "").toLowerCase().includes(searchQuery)
+          );
+        }
+        const container = document.getElementById("list-mine");
+        container.innerHTML = list.length 
+          ? list.map(s => renderCard(s, false)).join("") 
+          : "<div class='loader'>Sem turnos para mostrar.</div>";
+      }
+
+      if (currentTab === "all") {
+        let list = shiftsData;
+        if (searchQuery) {
+          list = list.filter(s => 
+            (s.data || "").toLowerCase().includes(searchQuery) ||
+            (s.setor || "").toLowerCase().includes(searchQuery) ||
+            (s.username || "").toLowerCase().includes(searchQuery) ||
+            (s.papel || "").toLowerCase().includes(searchQuery)
+          );
+        }
+        const container = document.getElementById("list-all");
+        container.innerHTML = list.length 
+          ? list.map(s => renderCard(s, true)).join("") 
+          : "<div class='loader'>Sem resultados encontrados.</div>";
+      }
+
+      if (currentTab === "contacts") {
+        let list = usersData;
+        if (searchQuery) {
+          list = list.filter(u => 
+            (u.nome || "").toLowerCase().includes(searchQuery) ||
+            (u.cargo || "").toLowerCase().includes(searchQuery) ||
+            (u.telefone || "").toLowerCase().includes(searchQuery)
+          );
+        }
+        const container = document.getElementById("list-contacts");
+        container.innerHTML = list.length ? list.map(c => `
+          <div class="contact-item">
+            <div class="contact-details">
+              <h4>${c.nome}</h4>
+              <p>${c.cargo || 'Interno'} &bull; Ramal/Tel: ${c.telefone || 'N/A'}</p>
+            </div>
+            ${c.telefone ? `<a href="tel:${c.telefone}" class="contact-action">&#9742;</a>` : ''}
+          </div>
+        `).join("") : "<div class='loader'>Nenhum contacto encontrado.</div>";
+      }
     }
 
-    window.onload = carregarDados;
+    if (currentUser) {
+      bootApp();
+    }
   </script>
 </body>
 </html>
