@@ -278,8 +278,8 @@ async function bootApp() {
   }
 }
 
-    function calculateStats() {
-      const myShifts = shiftsData.filter(s => s.username?.toLowerCase() === currentUser.username.toLowerCase());
+function calculateStats() {
+      const myShifts = dbEscalas.filter(s => s.username?.toLowerCase() === currentUser.username.toLowerCase());
       const urg = myShifts.filter(s => (s.setor || '').toLowerCase().includes("urg")).length;
       const bloco = myShifts.filter(s => (s.setor || '').toLowerCase().includes("bloco")).length;
       const res = myShifts.filter(s => (s.setor || '').toLowerCase().includes("resid") || (s.setor || '').toLowerCase().includes("prev")).length;
@@ -309,7 +309,7 @@ async function bootApp() {
     }
 
     function populateTrocasForm() {
-      const myShifts = shiftsData.filter(s => s.username?.toLowerCase() === currentUser.username.toLowerCase());
+      const myShifts = dbEscalas.filter(s => s.username?.toLowerCase() === currentUser.username.toLowerCase());
       const selectShift = document.getElementById("troca-meu-turno");
       selectShift.innerHTML = myShifts.map(s => {
         const timeStr = (s.hora_inicio && s.hora_fim) ? `${s.hora_inicio}-${s.hora_fim}` : (s.turno || '');
@@ -317,7 +317,7 @@ async function bootApp() {
       }).join("") || "<option>Sem turnos atribuídos</option>";
 
       const selectColega = document.getElementById("troca-colega");
-      selectColega.innerHTML = usersData
+      selectColega.innerHTML = dbInternos
         .filter(u => u.username?.toLowerCase() !== currentUser.username.toLowerCase())
         .map(u => `<option value="${u.nome} (${u.username})">${u.nome} - ${u.cargo || 'Interno'}</option>`)
         .join("");
@@ -392,7 +392,7 @@ async function bootApp() {
 
     function renderView() {
       if (currentTab === "mine") {
-        let list = shiftsData.filter(s => s.username?.toLowerCase() === currentUser.username.toLowerCase());
+        let list = dbEscalas.filter(s => s.username?.toLowerCase() === currentUser.username.toLowerCase());
         if (searchQuery) {
           list = list.filter(s => 
             (s.data || "").toLowerCase().includes(searchQuery) ||
@@ -407,7 +407,7 @@ async function bootApp() {
       }
 
       if (currentTab === "all") {
-        let list = shiftsData;
+        let list = dbEscalas;
         if (searchQuery) {
           list = list.filter(s => 
             (s.data || "").toLowerCase().includes(searchQuery) ||
@@ -423,7 +423,7 @@ async function bootApp() {
       }
 
       if (currentTab === "contacts") {
-        let list = usersData;
+        let list = dbInternos;
         if (searchQuery) {
           list = list.filter(u => 
             (u.nome || "").toLowerCase().includes(searchQuery) ||
