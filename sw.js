@@ -41,6 +41,13 @@ self.addEventListener('fetch', (event) => {
   ) {
     return;
   }
+  
+  function handleDateFilter() {
+  const selectedDate = document.getElementById("date-filter").value; // ex: 2026-10-12
+  searchQuery = selectedDate.toLowerCase();
+  document.getElementById("search-input").value = ""; // Limpa a pesquisa de texto
+  renderView();
+}
 
   // 2. Estratégia Network First: tenta sempre a versão mais recente online.
   // Se estiver sem net (offline), usa a cópia guardada na cache.

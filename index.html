@@ -166,7 +166,7 @@
       <p>Cirurgia Geral — Gestão de Escalas</p>
       <div class="form-group">
         <label>Utilizador</label>
-        <input type="text" id="username" placeholder="ex: jose.sousa" autocomplete="username">
+        <input type="text" id="username" placeholder="ex: jose.sousa" autocomplete="username" onkeydown="if(event.key==='Enter') login()">
       </div>
       <div class="form-group">
         <label>Palavra-passe</label>
@@ -211,8 +211,9 @@
     </div>
 
     <!-- Barra de Pesquisa -->
-    <div class="filter-section" id="filter-wrapper">
-      <input type="text" id="search-input" class="search-input" placeholder="Pesquisar por data, hora, nome ou sala..." oninput="handleSearch()">
+    <div class="filter-section" id="filter-wrapper" style="display: flex; gap: 8px;">
+      <input type="text" id="search-input" class="search-input" placeholder="Pesquisar por nome, sala ou setor..." oninput="handleSearch()" style="flex: 1;">
+      <input type="date" id="date-filter" class="search-input" onchange="handleDateFilter()" style="width: auto; max-width: 140px; padding: 10px;">
     </div>
 
     <!-- Tab 1: O Meu Mês -->
