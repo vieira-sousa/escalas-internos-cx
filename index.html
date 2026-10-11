@@ -168,26 +168,21 @@
   </style>
   
   <!-- SCRIPT DE LIMPEZA FORÇADA DE CACHE (Auto-Purge) -->
-  <script>
-    (async function() {
-      const APP_VERSION = "2026.10.11-v4";
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        for (let registration of registrations) {
-          registration.unregister();
-        }
-      }
+<script>
+  (async function() {
+    const APP_VERSION = "2026.10.11-v6";
+    const storedVersion = localStorage.getItem("app_version");
+    
+    if (storedVersion !== APP_VERSION) {
       if ('caches' in window) {
         const cacheNames = await caches.keys();
         await Promise.all(cacheNames.map(name => caches.delete(name)));
       }
-      const storedVersion = localStorage.getItem("app_version");
-      if (storedVersion !== APP_VERSION) {
-        localStorage.setItem("app_version", APP_VERSION);
-        window.location.reload(true);
-      }
-    })();
-  </script>
+      localStorage.setItem("app_version", APP_VERSION);
+      window.location.reload(true);
+    }
+  })();
+</script>
 </head>
 <body>
 
