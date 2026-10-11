@@ -51,7 +51,6 @@
       gap: 12px;
     }
 
-    /* Ícone / Símbolo ULS São João em Vetor */
     .brand-logo-svg {
       width: 34px;
       height: 34px;
@@ -98,9 +97,26 @@
     .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 20px; }
     .stat-box { background: var(--card-bg); border-radius: 10px; padding: 12px 6px; text-align: center; border: 1px solid var(--uls-border); box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
     .stat-number { font-size: 1.3rem; font-weight: 800; color: var(--uls-red); }
-    .stat-label { font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-top: 2px; }
+    .stat-label { font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-top: 2px; }
 
-    /* Barra de Pesquisa */
+    /* Calendário do "O Meu Dia" */
+    .day-selector-card { 
+      background: var(--card-bg); 
+      border: 1px solid var(--uls-border); 
+      border-radius: 12px; 
+      padding: 12px 14px; 
+      margin-bottom: 14px; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 6px; 
+    }
+    .day-selector-card label { font-size: 0.8rem; font-weight: 700; color: var(--uls-red); }
+    .day-selector-row { display: flex; gap: 8px; align-items: center; }
+    .date-input-day { flex: 1; padding: 9px 12px; border: 1.5px solid var(--uls-border); border-radius: 8px; font-size: 0.95rem; font-weight: 600; color: var(--uls-dark); outline: none; background: #fff; }
+    .date-input-day:focus { border-color: var(--uls-orange); }
+    .btn-today { background: var(--uls-orange-subtle); border: 1px solid #fed7aa; color: var(--uls-orange); font-weight: 700; font-size: 0.8rem; padding: 9px 12px; border-radius: 8px; cursor: pointer; }
+
+    /* Barra de Pesquisa Geral */
     .filter-section { padding: 0 20px; margin-bottom: 14px; }
     .search-input { width: 100%; padding: 11px 14px; background: var(--card-bg); border: 1.5px solid var(--uls-border); border-radius: 10px; font-size: 0.9rem; outline: none; }
     .search-input:focus { border-color: var(--uls-orange); }
@@ -129,7 +145,7 @@
     .contact-details p { font-size: 0.8rem; color: #64748b; }
     .contact-action { width: 36px; height: 36px; background: var(--uls-orange-subtle); color: var(--uls-orange); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-size: 1.1rem; border: 1px solid #fed7aa; }
 
-    /* Rodapé Simples */
+    /* Rodapé */
     .app-footer {
       text-align: center;
       padding: 24px 20px 10px 20px;
@@ -142,14 +158,36 @@
       font-weight: 600;
     }
 
-    /* Barra de Navegação Inferior */
+    /* Barra de Navegação Inferior (5 Botões) */
     .navbar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--uls-border); display: flex; justify-content: space-around; padding: 8px 0 calc(8px + env(safe-area-inset-bottom)); z-index: 100; }
-    .nav-btn { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 3px; color: #64748b; font-size: 0.72rem; font-weight: 600; cursor: pointer; width: 25%; }
+    .nav-btn { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 3px; color: #64748b; font-size: 0.68rem; font-weight: 600; cursor: pointer; flex: 1; }
     .nav-btn.active { color: var(--uls-red); font-weight: 700; }
-    .nav-btn svg { width: 20px; height: 20px; fill: currentColor; }
+    .nav-btn svg { width: 19px; height: 19px; fill: currentColor; }
 
     .loader { text-align: center; padding: 40px; color: #94a3b8; font-size: 0.9rem; }
   </style>
+  
+  <!-- SCRIPT DE LIMPEZA FORÇADA DE CACHE (Auto-Purge) -->
+  <script>
+    (async function() {
+      const APP_VERSION = "2026.10.11-v4";
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) {
+          registration.unregister();
+        }
+      }
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+      }
+      const storedVersion = localStorage.getItem("app_version");
+      if (storedVersion !== APP_VERSION) {
+        localStorage.setItem("app_version", APP_VERSION);
+        window.location.reload(true);
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -180,7 +218,6 @@
   <div id="app-view" style="display: none;">
     <header>
       <div class="brand-container">
-        <!-- Logótipo ULS São João (Cruz médica estilizada em cores institucionais) -->
         <svg class="brand-logo-svg" viewBox="0 0 40 40" fill="none">
           <rect width="40" height="40" rx="9" fill="#52140d"/>
           <circle cx="20" cy="20" r="14" fill="#6D1D14" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>
@@ -194,29 +231,40 @@
       <button class="btn-logout" onclick="logout()">Sair</button>
     </header>
 
-    <!-- Estatísticas Rápidas -->
+    <!-- Estatísticas do Mês Atual -->
     <div class="stats-bar" id="stats-section">
       <div class="stat-box">
         <div class="stat-number" id="stat-urg">0</div>
-        <div class="stat-label">Urgências</div>
+        <div class="stat-label" id="lbl-urg">Urgências (Mês)</div>
       </div>
       <div class="stat-box">
         <div class="stat-number" id="stat-bloco">0</div>
-        <div class="stat-label">Blocos</div>
+        <div class="stat-label" id="lbl-bloco">Blocos (Mês)</div>
       </div>
       <div class="stat-box">
         <div class="stat-number" id="stat-prev">0</div>
-        <div class="stat-label">Residências</div>
+        <div class="stat-label" id="lbl-prev">Residências (Mês)</div>
       </div>
     </div>
 
-    <!-- Barra de Pesquisa -->
-    <div class="filter-section" id="filter-wrapper" style="display: flex; gap: 8px;">
-      <input type="text" id="search-input" class="search-input" placeholder="Pesquisar por nome, sala ou setor..." oninput="handleSearch()" style="flex: 1;">
-      <input type="date" id="date-filter" class="search-input" onchange="handleDateFilter()" style="width: auto; max-width: 140px; padding: 10px;">
+    <!-- Barra de Pesquisa Geral (visível em Mês, Escala Geral e Contactos) -->
+    <div class="filter-section" id="filter-wrapper">
+      <input type="text" id="search-input" class="search-input" placeholder="Pesquisar por texto..." oninput="handleSearch()">
     </div>
 
-    <!-- Tab 1: O Meu Mês -->
+    <!-- Tab 0: O Meu Dia (NOVO) -->
+    <div id="tab-today" class="container">
+      <div class="day-selector-card">
+        <label>Selecionar Dia da Escala:</label>
+        <div class="day-selector-row">
+          <input type="date" id="day-picker" class="date-input-day" onchange="onDatePickerChange()">
+          <button class="btn-today" onclick="resetTodayPicker()">Hoje</button>
+        </div>
+      </div>
+      <div id="list-today"></div>
+    </div>
+
+    <!-- Tab 1: O Meu Mês (Apenas mês atual por predefinição) -->
     <div id="tab-mine" class="container">
       <div id="list-mine"></div>
     </div>
@@ -264,7 +312,11 @@
 
     <!-- Barra de Navegação Inferior -->
     <nav class="navbar">
-      <button class="nav-btn active" id="btn-tab-mine" onclick="switchTab('mine')">
+      <button class="nav-btn active" id="btn-tab-today" onclick="switchTab('today')">
+        <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V9h14v10zm-7-2h5v-5h-5v5z"/></svg>
+        O Meu Dia
+      </button>
+      <button class="nav-btn" id="btn-tab-mine" onclick="switchTab('mine')">
         <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
         O Meu Mês
       </button>
@@ -288,11 +340,28 @@
     const URL_ESCALAS_CSV        = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaj9SkVlZ_5CKVSbB5KhePo12UGQqudjbwfqOOnzQQrEzbQwS_IYjuU_I8_OfLrHqAOw9kRCGkzRtI/pub?gid=947242298&single=true&output=csv";
     const URL_APPS_SCRIPT_TROCAS = "https://script.google.com/macros/s/AKfycbytHcebYLb5tdJD-iJZ87dPxhctVAt44qHfxyamPVbhRhWT-vhrIuciNkcPnmIZXc9J/exec";
 
-    let currentUser = JSON.parse(localStorage.getItem("ulssj_user")) || null;
-    let dbEscalas   = [];
-    let dbInternos  = [];
-    let currentTab  = "mine";
-    let searchQuery = "";
+    let currentUser     = JSON.parse(localStorage.getItem("ulssj_user")) || null;
+    let dbEscalas       = [];
+    let dbInternos      = [];
+    let currentTab      = "today";
+    let searchQuery     = "";
+    let selectedDayDate = getTodayDateString(); // "YYYY-MM-DD"
+
+    // Funções auxiliares para datas
+    function getTodayDateString() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function getCurrentMonthString() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      return `${y}-${m}`; // "YYYY-MM"
+    }
 
     function parseCSV(text) {
       if (!text || !text.trim()) return [];
@@ -352,6 +421,12 @@
       document.getElementById("login-view").style.display = "none";
       document.getElementById("app-view").style.display = "block";
 
+      // Inicializa o seletor de dia para a data de hoje
+      const picker = document.getElementById("day-picker");
+      if (picker) {
+        picker.value = selectedDayDate;
+      }
+
       try {
         const [resEscalas, resInternos] = await Promise.all([
           fetch(URL_ESCALAS_CSV + (URL_ESCALAS_CSV.includes("?") ? "&" : "?") + "t=" + Date.now()),
@@ -363,19 +438,27 @@
 
         calculateStats();
         populateTrocasForm();
-        switchTab("mine");
+        switchTab("today"); // Entra por predefinição em "O Meu Dia"
       } catch (e) {
         console.error("Erro ao sincronizar dados:", e);
-        document.getElementById("list-mine").innerHTML = "<div class='loader'>Erro ao sincronizar dados com o Google Sheets.</div>";
+        document.getElementById("list-today").innerHTML = "<div class='loader'>Erro ao sincronizar dados com o Google Sheets.</div>";
       }
     }
 
+    // Calcula os contadores APENAS para o mês corrente
     function calculateStats() {
       if (!currentUser) return;
-      const myShifts = dbEscalas.filter(s => (s.username || "").toLowerCase() === (currentUser.username || "").toLowerCase());
-      const urg = myShifts.filter(s => (s.setor || "").toLowerCase().includes("urg")).length;
-      const bloco = myShifts.filter(s => (s.setor || "").toLowerCase().includes("bloco")).length;
-      const res = myShifts.filter(s => (s.setor || "").toLowerCase().includes("resid") || (s.setor || "").toLowerCase().includes("prev")).length;
+      const currentMonth = getCurrentMonthString(); // "YYYY-MM"
+
+      const myMonthlyShifts = dbEscalas.filter(s => {
+        const isMe = (s.username || "").toLowerCase() === (currentUser.username || "").toLowerCase();
+        const isInMonth = (s.data || "").startsWith(currentMonth);
+        return isMe && isInMonth;
+      });
+
+      const urg = myMonthlyShifts.filter(s => (s.setor || "").toLowerCase().includes("urg")).length;
+      const bloco = myMonthlyShifts.filter(s => (s.setor || "").toLowerCase().includes("bloco")).length;
+      const res = myMonthlyShifts.filter(s => (s.setor || "").toLowerCase().includes("resid") || (s.setor || "").toLowerCase().includes("prev")).length;
 
       document.getElementById("stat-urg").innerText = urg;
       document.getElementById("stat-bloco").innerText = bloco;
@@ -392,14 +475,32 @@
       const activeTabEl = document.getElementById(`tab-${tab}`);
       if (activeTabEl) activeTabEl.style.display = "block";
 
-      document.getElementById("stats-section").style.display = (tab === "mine") ? "grid" : "none";
-      document.getElementById("filter-wrapper").style.display = (tab === "trocas") ? "none" : "block";
+      // Os contadores do mês aparecem nos separadores pessoais ("today" e "mine")
+      document.getElementById("stats-section").style.display = (tab === "today" || tab === "mine") ? "grid" : "none";
+      // A barra de pesquisa de texto geral só aparece nos separadores de listagem ampla
+      document.getElementById("filter-wrapper").style.display = (tab === "mine" || tab === "all" || tab === "contacts") ? "block" : "none";
 
       renderView();
     }
 
     function handleSearch() {
       searchQuery = document.getElementById("search-input").value.toLowerCase();
+      renderView();
+    }
+
+    // Handlers específicos do separador "O Meu Dia"
+    function onDatePickerChange() {
+      const picker = document.getElementById("day-picker");
+      if (picker && picker.value) {
+        selectedDayDate = picker.value;
+        renderView();
+      }
+    }
+
+    function resetTodayPicker() {
+      selectedDayDate = getTodayDateString();
+      const picker = document.getElementById("day-picker");
+      if (picker) picker.value = selectedDayDate;
       renderView();
     }
 
@@ -452,7 +553,7 @@
         alert("Pedido de troca submetido com sucesso! Fica registado na folha para validação.");
         document.getElementById("troca-compensacao").value = "";
         document.getElementById("troca-motivo").value = "";
-        switchTab("mine");
+        switchTab("today");
       } catch (err) {
         console.error("Erro na troca:", err);
         alert("Erro ao submeter pedido. Verifica a ligação à internet.");
@@ -490,8 +591,29 @@
     function renderView() {
       if (!currentUser) return;
 
+      // 1. O MEU DIA
+      if (currentTab === "today") {
+        const myShiftsToday = dbEscalas.filter(s => {
+          const isMe = (s.username || "").toLowerCase() === (currentUser.username || "").toLowerCase();
+          const isDate = (s.data || "") === selectedDayDate;
+          return isMe && isDate;
+        });
+
+        const container = document.getElementById("list-today");
+        container.innerHTML = myShiftsToday.length 
+          ? myShiftsToday.map(s => renderCard(s, false)).join("") 
+          : `<div class='loader'>Sem tarefas atribuídas para <b>${selectedDayDate}</b>.</div>`;
+      }
+
+      // 2. O MEU MÊS (Predefinição: apenas tarefas do mês atual)
       if (currentTab === "mine") {
-        let list = dbEscalas.filter(s => (s.username || "").toLowerCase() === (currentUser.username || "").toLowerCase());
+        const currentMonth = getCurrentMonthString();
+        let list = dbEscalas.filter(s => {
+          const isMe = (s.username || "").toLowerCase() === (currentUser.username || "").toLowerCase();
+          const isInMonth = (s.data || "").startsWith(currentMonth);
+          return isMe && isInMonth;
+        });
+
         if (searchQuery) {
           list = list.filter(s => 
             (s.data || "").toLowerCase().includes(searchQuery) ||
@@ -499,12 +621,14 @@
             (s.papel || "").toLowerCase().includes(searchQuery)
           );
         }
+
         const container = document.getElementById("list-mine");
         container.innerHTML = list.length 
           ? list.map(s => renderCard(s, false)).join("") 
-          : "<div class='loader'>Sem turnos atribuídos para este utilizador.</div>";
+          : `<div class='loader'>Sem turnos registados para o mês atual (${currentMonth}).</div>`;
       }
 
+      // 3. ESCALA GERAL
       if (currentTab === "all") {
         let list = dbEscalas;
         if (searchQuery) {
@@ -521,6 +645,7 @@
           : "<div class='loader'>Sem resultados encontrados.</div>";
       }
 
+      // 4. CONTACTOS
       if (currentTab === "contacts") {
         let list = dbInternos;
         if (searchQuery) {

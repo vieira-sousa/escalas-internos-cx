@@ -1,5 +1,5 @@
-// Aumenta a versão (v3, v4...) sempre que fizeres grandes alterações estruturais
-const CACHE_NAME = 'ulssj-escalas-v3';
+// Aumenta a versão sempre que fizeres alterações estruturais
+const CACHE_NAME = 'ulssj-escalas-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -7,7 +7,6 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-  // Força o novo Service Worker a ativar-se de imediato sem esperar que as abas fechem
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
@@ -15,7 +14,6 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  // Apaga imediatamente todas as caches antigas
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
@@ -41,16 +39,8 @@ self.addEventListener('fetch', (event) => {
   ) {
     return;
   }
-  
-  function handleDateFilter() {
-  const selectedDate = document.getElementById("date-filter").value; // ex: 2026-10-12
-  searchQuery = selectedDate.toLowerCase();
-  document.getElementById("search-input").value = ""; // Limpa a pesquisa de texto
-  renderView();
-}
 
-  // 2. Estratégia Network First: tenta sempre a versão mais recente online.
-  // Se estiver sem net (offline), usa a cópia guardada na cache.
+  // 2. Estratégia Network First: tenta rede primeiro, se offline usa a cache
   event.respondWith(
     fetch(event.request)
       .then((networkResponse) => {
